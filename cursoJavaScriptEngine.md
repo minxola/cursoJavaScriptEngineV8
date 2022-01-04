@@ -191,7 +191,7 @@ Cuando ocurre el Stack Overflow, anteriormente el navegador se cerraba, sin emba
 
 El JavaScript Runtime Enviroment (JRE) es aquel que proporciona características adicionales a nuestra aplicación (clic con el mouse, información del navegador, solicitudes HTTP, etc) en el tiempo de ejecución, además es el responsable de hacer que JavaScript sea *Asíncrono* y *no bloqueante*.
 
-<img src="D:\Platzi\escuelaJS\cursoJavaScriptEngineV8\jsRuntime.png" alt="JS Runtime" style="zoom:67%;" />
+<img src=".\jsRuntime.png" alt="JS Runtime" style="zoom:67%;" />
 
 El JRE contiene los siguientes componentes:
 
