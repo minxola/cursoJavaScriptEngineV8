@@ -125,13 +125,165 @@ Si el número de contextos de ejecución supera el tamaño de la pila, se produc
 
 Por ejemplo, cuando ejecuta una función recursiva que no tiene condición de salida, resultará en un error de desbordamiento de pila:
 
+## Garbage Collection
+
+Los lenguajes de bajo nivel, como C, tienen primitivos de bajo nivel como `malloc() `y `free() `para la gestión de memoria. Por otro lado, para los valores en JavaScript se reserva memoria cuando"cosas" (objetos, strings, etc.) son creados y "automáticamente" liberados cuando ya no son utilizados. El proceso anterior es conocido como *Recolección de basura (garbage collection).* Su forma "automática" es fuente de confusión, y da la impresión a los desarrolladores de JavaScript (y de otros lenguajes de alto nivel) de poder ignorar el proceso de gestión de memoria. Esto es erróneo. 
+
+[Ciclo de vida de memoria](https://developer.mozilla.org/es/docs/Web/JavaScript/Memory_Management)
+
+Sin importar el lenguaje de programación, el ciclo de memoria es casi siempre parecido al siguiente:
+
+1. Reservar la memoria necesaria
+2. Utilizarla (lectura, escritura)
+3. Liberar la memoria una vez ya no es necesaria.
+
+El primer y el segundo paso son explícitos en todos los lenguajes. El último paso es explícito en lenguajes de bajo nivel, pero es mayormente implícito en lenguajes de alto nivel como JavaScript
+
+**1. Reserva de memoria en JavaScript**
+
+Para no agobiar al programador con reservas de memoria, JavaScript las realiza al mismo tiempo que la declaración de los valores.
+
+En ocasiones, al llamar a una función se reserva memoria para un objeto.
+
+**2. Usando valores**
+
+Usar un valor es simplemente leerlo o escribirlo en memoria reservada. Esto puede ocurrir al leer o escribir el valor de una variable o de una propiedad de un objeto, inclusive pasando un argumento a una función.
+
+**3. Liberar memoria cuando ya no es necesaria**
+
+Los lenguajes de alto nivel incluyen una herramienta de software conocida como "recolector de basura" *(garbage collector),* cuya función es rastrear las reservas de memoria y su utilización, para así encontrar cuándo cierta parte de la memoria ya no es necesaria, y en su momento liberarla automáticamente.
+
+**Recolección de basura (Garbage collection)**
+
+La noción principal de los algoritmos de recolección se basan en la noción de *referencia*. Dentro del contexto de gestión de memoria, se dice que un objeto hace referencia a otro si el primero tiene acceso al segundo (ya sea de forma implícita o explícita). Por ejemplo, un objeto de JavaScript guarda una referencia a su prototipo (referencia implícita) y a cualquiera de los valores de sus propiedades (referencia explícita)
+
+**Métodos de recolección de basura**
+
+- Conteo de referencias
+- Algoritmo Mark-and-sweep (marcado y barrido)
+
+### [Algoritmo Mark-and-sweep (Marcado y barrido)](https://developer.mozilla.org/es/docs/Web/JavaScript/Memory_Management#algoritmo_mark-and-sweep_(marcado_y_barrido))
+
+Este algoritmo reduce la definición de "un objeto ya no es necesitado" a "un objeto es inalcanzable"
+
+Este algoritmo asume la noción de un grupo de objetos llamados *objetos raíz* (en JavaScript la raíz es el objeto global). Periódicamente el recolector empieza por estas raíces, encuentra todos los objetos que están referenciados por estas raíces, y luego todos los objetos referenciados de estos, etc. Empezando por las raíces, el recolector de esta forma encontrará todos los objetos que son *alcanzables* y recolectará los objetos inalcanzables.
+
+Este algoritmo es mejor que el anterior ya que "un objeto tiene cero referencias" equivale al "objeto es inalcanzable". Esto no sucedía asi en el algoritmo anterior cuando se trataba de un ciclo.
+
+Desde el 2012, todos los navegadores incluyen un recolector de basura basado en mark-and-sweep. Todas las mejoras realizadas en el campo de Recolección de basura en JavaScript (recolección generacional/incremental/concurrida/paralela) en los ultimos años son mejoras a la implementación del algoritmo, pero no mejoras sobre el algoritmo de recolección ni a la reducción de la definicion de cuando"un objeto ya no es necesario".
+
+**En resumen**:
+
+**Garbage collecction** es el proceso de rastrear los “desechos” y limpiar la memoria(Mark and Sweep) para evitar un **overstack**.
+**Mark and sweep** es el proceso en el que marca(mark) los espacios de memoria no utilizados en el heap y los elimina(sweep).
+
+## Stack Overflow
+
+El **call stack** es la lista de tareas, donde en la base se encuentra el **Global Object**. Este call stack tiene un tamaño limitado ya sea por el servidor o el navegador.
+
+Todas las tareas del código se van apilando sobre el global object, que luego de ejecutarse se van evacuando (garbage collection).
+
+Puede ocurrir que una función desborde la pila de tareas, a esto se le conoce como `stack overflow`. La lista de tareas del call stack desborda su 'tamaño máximo'.
+
+Cuando ocurre el Stack Overflow, anteriormente el navegador se cerraba, sin embargo, actualmente los navegadores detectan cuando una función puede desbordar la pila y detienen la ejecución de dicha función.
+
+## JavaScript Runtime
+
+El JavaScript Runtime Enviroment (JRE) es aquel que proporciona características adicionales a nuestra aplicación (clic con el mouse, información del navegador, solicitudes HTTP, etc) en el tiempo de ejecución, además es el responsable de hacer que JavaScript sea *Asíncrono* y *no bloqueante*.
+
+<img src="D:\Platzi\escuelaJS\cursoJavaScriptEngineV8\jsRuntime.png" alt="JS Runtime" style="zoom:67%;" />
+
+El JRE contiene los siguientes componentes:
+
+- Motor JavaScript (Memory Heap, Call Stack)
+- Web APIs (DOM, AJAX, Times, etc)
+- Callback Queue (cola de devolución o cola de mensajes)
+- Job Queue
+- Event Loop (bucle de eventos)
+
+## Asincronía
+
+JavaScript por default corre una tarea a la vez –> Sincronismo
+Memory Heap: Espacio donde se guardan funciones y variables.
+Call Stack: Donde se apilan todas las tareas que tenemos que hacer con Javascript
+Web API's (Ofrecidas por el navegador para manipular lo siguiente)
+
+- DOM(document)
+- AJAX(XMLHttpRequest)
+- Timeout(setTimeout)
+
+Call Back Queue: El orden en que se van a ejecutar a funciones
+Al momento de usar asincronismo sacamos funciones del Call Stack que no serán ejecutadas por javascript y serán ejecutadas por el navegador (mediante Web API's), luego cuando el navegador tenga listas estas tareas delegadas, los colocará en el Call Back Queue según el orden que van llegando, luego el Event Loop, se encargará de enviarlas al Call Stack cuando este haya finalizado la pila de tareas.
+
+**Ejemplos**
+
+Al ejecutar en la consola del navegador lo siguiente:
+
+```js
+console.log("taco 1");
+console.log("taco 2");
+console.log("torta");
+console.log("taco 3");
+```
+
+Se obtendría como resultado:
+
+```js
+//taco 1
+//taco 2
+//torta
+//taco 3
+```
+
+En este caso no hay asincronismo, sino que todas las tareas se realizan una a una conforme aparecen en el código.
+
+Sin embargo, al ejecutar este código en la consola del navegador, usando `setTimeout()` para en caso de la torta:
+
+```js
+console.log("taco 1");
+console.log("taco 2");
+setTimeout(()=>{
+    console.log("torta");
+}, 1000);
+console.log("taco 3");
+```
+
+Se obtendría:
+
+```js
+//taco 1
+//taco 2
+//taco 3
+//torta
+```
+
+Esto debido a que cuando el call stack llega a la función setTimeout, debido al tiempo asignado, esta es sacada de la pila y pasada al navegador para que la realice, continuando luego con la siguiente tarea de la pila. Una vez el navegador, evalúa la función setTimeout, lo envía al callback queue, quedando a la espera para que en console.log('torta') mediante el Event Loop sea pasado nuevamente a la pila de ejecución, donde será ejecutado siempre y cuando el call stack haya terminado de realizar sus tareas.
+
+En el siguiente ejemplo, así el tiempo asignado sea 0 segundos, la función setTimeout, enviará dicha tarea al Callback Queue, hasta que las demás tareas del Call Stack se ejecuten, finalmente el Event Loop la pasará nuevamente al Call Stack para su ejecución.
+
+```js
+console.log("taco 1");
+console.log("taco 2");
+setTimeout(()=>{
+    console.log("torta");
+}, 0);
+console.log("taco 3");
+/*
+Se obtendrá como resultado:
+*/
+//taco 1
+//taco 2
+//taco 3
+//torta
+```
+
+Haciendo una analogía quedaría así para el caso de una taquería:
+
+🌮 - **call stack** : *el taquero (órdenes rápidas)*
+👨‍🍳 - **web APIs** : *la cocina*
+🌯 - **callback queue** : *las órdenes preparadas*
+💁‍♂️ - **event loop** : *el mesero*
 
 
 
-
-
-
-
-
-
-
+**Never Stop Learning!**
